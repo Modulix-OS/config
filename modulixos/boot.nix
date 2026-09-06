@@ -2,7 +2,8 @@
 
 let
   cfg = config.mx.bootloader;
-  branding = pkgs.callPackage ../pkgs/modulix-boot-splash.nix { };
+  splashBackground = ../assets/bootloader-background.png;
+  logo = ../assets/modulix-logo.png;
   plymouthTheme = pkgs.callPackage ../pkgs/modulix-plymouth-theme.nix {
     watermarkVerticalAlignment = cfg.splash.logoPosition;
   };
@@ -31,13 +32,12 @@ in
       };
       image = lib.mkOption {
         type = lib.types.path;
-        default = "${branding}/share/modulix/splash.png";
-        defaultText = lib.literalExpression ''"''${pkgs.modulix-boot-splash}/share/modulix/splash.png"'';
+        default = splashBackground;
         description = "Bootloader background image (PNG).";
       };
       logo = lib.mkOption {
         type = lib.types.path;
-        default = "${branding}/share/modulix/logo.png";
+        default = logo;
         defaultText = lib.literalExpression ''"''${pkgs.modulix-boot-splash}/share/modulix/logo.png"'';
         description = "Modulix logo drawn as the Plymouth watermark (PNG).";
       };
