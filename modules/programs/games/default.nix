@@ -277,37 +277,27 @@ in
     }) cfg.users);
 
     systemd.tmpfiles.rules =
-      let
-        acl = lib.concatStringsSep "," [
-          "user::rwX"
-          "group::rwX"
-          "group:gamers:rwX"
-          "mask::rwX"
-          "other::---"
-          "default:user::rwx"
-          "default:group::rwx"
-          "default:group:gamers:rwx"
-          "default:mask::rwx"
-          "default:other::---"
-        ];
-
-        mkRules = owner: p: [
-          "d ${p} 2770 ${owner} gamers -"
-          "a+ ${p} - - - - ${acl}"
-        ];
-        mkRecursiveRules = p: [
-          "Z ${p} ~2770 root gamers -"
-          "A+ ${p} - - - - ${acl}"
-        ];
-      in
-      lib.concatMap (mkRules "root") cfg.game_lib_dirs
-      ++ lib.optionals (cfg.shared_steam_dir != null) (
-        mkRules "root" cfg.shared_steam_dir
-        ++ lib.concatMap (mkRules "-") [
-          "${cfg.shared_steam_dir}/common"
-        ]
-        ++ mkRecursiveRules cfg.shared_steam_dir
-      );
+    let
+      acl = lib.concatStringsSep "," [
+        "user::rwX"
+        "group::rwX"
+        "group:gamers:rwX"
+        "mask::rwX"
+        "other::---"
+        "default:user::rwx"
+        "default:group::rwx"
+        "default:group:gamers:rwx"
+        "default:mask::rwx"
+        "default:other::---"
+      ];
+      mkRules = owner: p: [
+        "d ${p} 2770 ${owner} gamers -"
+        "a+ ${p} - - - - ${acl}"
+      ];
+    in
+    lib.concatMap (mkRules "root") cfg.game_lib_dirs
+    ++ lib.optional (cfg.shared_steam_dir != null)
+        "d ${cfg.shared_steam_dir} 0700 root root -";
 
     services.udev.extraRules = ''
       ACTION=="add|change", SUBSYSTEM=="block", ATTR{queue/scheduler}="bfq"
