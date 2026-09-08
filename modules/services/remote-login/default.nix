@@ -3,7 +3,7 @@
 let
   cfg = config.mx.services.remote-login;
 
-  user = config.mx.services.remote-desktop.user;
+  user = "remote-login";
 
   runtimeDir = "/run/mx-remote-login";
   gdmConfLink = "${runtimeDir}/gdm-custom.conf";
@@ -175,10 +175,6 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = user != "";
-        message = "mx.services.remote-login opens a session for mx.services.remote-desktop.user, which is empty (no normal user was found to default to).";
-      }
-      {
         assertion = config.mx.desktop == "gnome";
         message = "mx.services.remote-login drives GDM: it needs mx.desktop = \"gnome\".";
       }
@@ -212,18 +208,13 @@ in
     };
 
     users.groups.${user} = { };
-    users.users.${user} = lib.mkMerge [
-      {
-        extraGroups = [ user ];
-        openssh.authorizedKeys.keys = cfg.authorizedKeys;
-        packages = [ pkgs.firefox-bin pkgs.gnome-console ];
-      }
-      (lib.mkIf cfg.createUser {
-        isNormalUser = true;
-        createHome = true;
-        extraGroups = [ "gamers" ];
-      })
-    ];
+    users.users.${user} = {
+      extraGroups = [ user "gamers" ];
+      openssh.authorizedKeys.keys = cfg.authorizedKeys;
+      packages = [ pkgs.firefox-bin pkgs.gnome-console ];
+      isNormalUser = true;
+      createHome = true;
+    };
 
     security.wrappers = {
       mx-remote-login = {

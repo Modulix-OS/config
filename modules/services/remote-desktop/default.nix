@@ -1,8 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  normalUsers = import ../../../lib/normal-user.nix { inherit config; };
-  username = cfg.user;
+  username = "remote-login";
 
   runtimeDir = "/run/user/$(${pkgs.coreutils}/bin/id -u ${username})";
 
@@ -82,17 +81,6 @@ in
 {
   options.mx.services.remote-desktop = {
     enable = lib.mkEnableOption "Enable remote desktop server";
-
-    user = lib.mkOption {
-      type = lib.types.str;
-      default = if normalUsers == [ ] then "" else lib.head normalUsers;
-      description = ''
-        Owner of the graphical session Sunshine drives: the Steam helper scripts
-        run as this user and talk to its session bus. Defaults to the first
-        normal user of the system.
-      '';
-      example = "gamer";
-    };
 
     app = lib.mkOption {
       default = [ ];
@@ -181,11 +169,6 @@ in
       {
         assertion = config.mx.services.virtual-display.enable;
         message = "mx.services.remote-desktop.app entries with an 'output' need mx.services.virtual-display.enable (it provides activate-virtual-display / restore-display).";
-      }
-    ] ++ lib.optionals (lib.any (a: a.steam) cfg.app) [
-      {
-        assertion = cfg.user != "";
-        message = "mx.services.remote-desktop.app entries with 'steam' need mx.services.remote-desktop.user (no normal user was found to default to).";
       }
     ];
   };
